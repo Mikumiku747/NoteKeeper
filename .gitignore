@@ -30,3 +30,12 @@
 
 # Debug files
 *.dSYM/
+
+# Autoconf generated files
+config.log
+config.status
+autom4te.cache
+
+# Build generated folders
+bin
+obj
