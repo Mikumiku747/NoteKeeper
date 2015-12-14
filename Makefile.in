@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #Compiler
-CC = @CC@ 
+CC = @CC@ -std=c11
 CFLAGS = @CFLAGS@
 
 #Output Directory
@@ -24,23 +24,56 @@ BINDIR = bin
 #Source Directory
 SRCDIR = src
 
+#Object Files Dir
+OBJDIR = obj
+
 #Library includes
 CFLAGS += $$(pkg-config --cflags --libs gtk+-2.0)
 
-SOURCES = $$(ls $(SRCDIR)/*)
+build: $(BINDIR)/notekeeper
 
-all: $(BINDIR) $(BINDIR)/notekeeper
+#Source and object lists
+SOURCES = \
+	$(SRCDIR)/notekeeper.c \
+	$(SRCDIR)/callbacks.h \
+	$(SRCDIR)/callbacks.c \
+	$(SRCDIR)/menu.h \
+	$(SRCDIR)/menu.c 
+	
 
+OBJECTS = \
+	$(OBJDIR)/notekeeper.o \
+	$(OBJDIR)/callbacks.o \
+	$(OBJDIR)/menu.o
+	
+#Directory Recipies
 $(BINDIR):
 	mkdir -p $(BINDIR)
 	
-$(BINDIR)/notekeeper: $(SRCDIR)
-	$(CC) $(CFLAGS) $(SOURCES) -o $(BINDIR)/notekeeper
+$(OBJDIR): 
+	mkdir -p $(OBJDIR)
+
+#Recipie for the executable	
+$(BINDIR)/notekeeper: $(OBJECTS) $(BINDIR)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(BINDIR)/notekeeper
+	echo "Build Sucessful"
+	
+#Recipies for object files
+$(OBJDIR)/notekeeper.o: $(OBJDIR) $(SRCDIR)/notekeeper.c
+	$(CC) -c $(CFLAGS) $(SRCDIR)/notekeeper.c -o $(OBJDIR)/notekeeper.o
+$(OBJDIR)/callbacks.o: $(OBJDIR) $(SRCDIR)/callbacks.*
+	$(CC) -c $(CFLAGS) $(SRCDIR)/callbacks.c -o $(OBJDIR)/callbacks.o
+$(OBJDIR)/menu.o: $(OBJDIR) $(SRCDIR)/menu.*
+	$(CC) -c $(CFLAGS) $(SRCDIR)/menu.c -o $(OBJDIR)/menu.o
 
 clean:
 	rm -rf $(BINDIR)
+	rm -rf $(OBJDIR)
 	rm configure config.log config.status
 	rm -rf autom4te.cache
 	rm -f Makefile
 
-.PHONY: all clean
+run: $(BINDIR)/notekeeper
+	$(BINDIR)/notekeeper
+
+.PHONY: clean run
