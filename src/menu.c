@@ -18,7 +18,7 @@
 #include "menu.h"
 #include "callbacks.h"
 
-GtkWidget *setupMenu() {
+GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	/* Packs the main menu into the given destination widget. Returns a
 	 * reference to the menu bar, so you can pack it how you want. */
 	
@@ -35,10 +35,13 @@ GtkWidget *setupMenu() {
 	/* Set up the File Menu */
 	FileMenu = gtk_menu_new();
 	FileMenuItems[0] = gtk_menu_item_new_with_mnemonic("Open");
+	g_signal_connect(FileMenuItems[0], "activate", 
+		G_CALLBACK(fileMenuOpenCallback), 
+		(gpointer)12345);
 	FileMenuItems[1] = gtk_menu_item_new_with_label("Save");
 	FileMenuItems[2] = gtk_menu_item_new_with_label("Quit");
 	g_signal_connect(FileMenuItems[2], "activate", 
-		G_CALLBACK(topWindow_delete_event), NULL);
+		G_CALLBACK(topWindow_delete_event), (gpointer)"Hello");
 	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
 		FileMenuItems[0]);
 	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 

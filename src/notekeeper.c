@@ -21,23 +21,26 @@
 
 /* Source Includes */
 #include "callbacks.h"
+#include "menu.h"
+#include "xml.h"
 
 /* Main */
 int main(int argc, char *argv)
 {
 	/* Storage variables for some important widgets */
 	GtkWidget *topWindow;
-	GtkWidget *layoutTable;
+	GtkWidget *layoutBox;
 	GtkWidget *menuBar;
 	GtkWidget *sectionNotebook;
+	GtkWidget *notOpenLabel;
 	
-	GtkWidget *exampleTextView;
-	GtkTextBuffer *exampleTextBuffer;
-	GtkWidget *exampleSection;
-	
+	GtkWidget *important[2];
 	
 	/* Initialise GTK */
 	gtk_init(&argc, &argv);	
+	
+	/* Initialise libxml */
+	initXML();
 	
 	/* Set up the main window */
 	topWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -45,43 +48,36 @@ int main(int argc, char *argv)
 		G_CALLBACK(topWindow_delete_event), NULL);
 	gtk_window_set_title(GTK_WINDOW(topWindow), "Notekeeper");
 	
-	/* Set up the table for UI layout */
-	layoutTable = gtk_table_new(2, 1, FALSE);
-	gtk_container_add(GTK_CONTAINER(topWindow), layoutTable);
-	gtk_widget_show(layoutTable);
+	/* Set up the vbox for UI layout */
+	layoutBox = gtk_vbox_new(FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(topWindow), layoutBox);
+	gtk_widget_show(layoutBox);
 	
-	/* Set up the menu */
-	menuBar = setupMenu();
-	gtk_table_attach_defaults(GTK_TABLE(layoutTable), menuBar, 
-		0, 1, 0, 1);
-	
-	/* Create an example text view */
-	exampleTextView = gtk_text_view_new();
-	exampleTextBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(exampleTextView));
-	gtk_widget_show(exampleTextView);
-	
-	/* Create an example section notebook */
-	exampleSection = gtk_notebook_new();
-	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(exampleSection), 
-		GTK_POS_RIGHT);
-	gtk_widget_show(exampleSection);
-		
 	/* Add the section notebook */
 	sectionNotebook = gtk_notebook_new();
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(sectionNotebook), 
 		GTK_POS_TOP);
-	gtk_table_attach_defaults(GTK_TABLE(layoutTable), sectionNotebook,
-		0, 1, 1, 2);
+	gtk_box_pack_end(GTK_BOX(layoutBox), sectionNotebook, TRUE, TRUE, 0);
 	gtk_widget_show(sectionNotebook);
 	
-	/* Add the example text view to the example section */
-	gtk_notebook_append_page(GTK_NOTEBOOK(exampleSection), exampleTextView, gtk_label_new("Example Page"));
+	/* Add a default label in the notebook to inform the user they need
+	 * to open one. Also, hide section labels for now. */
+	notOpenLabel = gtk_label_new(
+		"No notebook currently open, use the [File > Open] command to o\
+pen a notebook."
+		);
+	gtk_label_set_line_wrap(GTK_LABEL(notOpenLabel), TRUE);
+	gtk_widget_set_size_request(notOpenLabel, 400, 300);
+	gtk_widget_show(notOpenLabel);
+	gtk_notebook_append_page(GTK_NOTEBOOK(sectionNotebook), 
+		notOpenLabel, NULL);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(sectionNotebook), FALSE);
 	
-	/* Add the example section to the section notebook */
-	gtk_notebook_append_page(GTK_NOTEBOOK(sectionNotebook), exampleSection, gtk_label_new("Example Section"));
-	
-	
-	
+	/* Set up the menu */
+	important[0] = topWindow;
+	important[1] = sectionNotebook;
+	menuBar = setupMenu(important);
+	gtk_box_pack_start(GTK_BOX(layoutBox), menuBar, FALSE, FALSE, 0);
 	
 	/* UI is ready, render the window */
 	gtk_widget_show(topWindow);

@@ -1,4 +1,4 @@
-/*  callbacks.h - Event callbacks for the main program
+/*  xml.c - XML related functions (Saving and loading the notebooks)
     Copyright (C) 2015  Daniel Selmes
 
     This program is free software: you can redistribute it and/or modify
@@ -15,18 +15,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CALLBACKS_H
-#define CALLBACKS_H
+#include "xml.h"
 
-/* Includes */
-#include <gtk/gtk.h>
+int initXML()
+/* Initialises the XML library */
+{
+	LIBXML_TEST_VERSION
+}
 
-gint topWindow_delete_event(GtkWidget *widget, GdkEvent *event, 
-	gpointer data);
-
-gint fileMenuOpenCallback(GtkWidget *widget, GdkEvent *event, 
-	gpointer calldata);
-/* Opens a notebook for the user, builds XML tree, creates and binds
- * widgets, etc. */
-
-#endif
+xmlDoc *loadNotebook(char *filename)
+/* Loads an XML document into memory from a file */
+{
+	xmlDoc *notebook = NULL;
+	notebook = xmlReadFile(filename, NULL, 0);
+	if (notebook == NULL) {
+		return NULL;
+	} else {
+		return notebook;
+	}
+}

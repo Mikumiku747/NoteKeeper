@@ -20,6 +20,6 @@
 
 #include <gtk/gtk.h>
 
-GtkWidget *setupMenu();
+GtkWidget *setupMenu(GtkWidget **importantWidgets);
 
 #endif
