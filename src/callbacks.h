@@ -20,12 +20,13 @@
 
 /* Includes */
 #include <gtk/gtk.h>
+#include "xml.h"
+#include <stdlib.h>
 
 gint topWindow_delete_event(GtkWidget *widget, GdkEvent *event, 
 	gpointer data);
 
-gint fileMenuOpenCallback(GtkWidget *widget, GdkEvent *event, 
-	gpointer calldata);
+gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata);
 /* Opens a notebook for the user, builds XML tree, creates and binds
  * widgets, etc. */
 

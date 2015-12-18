@@ -22,15 +22,3 @@ int initXML()
 {
 	LIBXML_TEST_VERSION
 }
-
-xmlDoc *loadNotebook(char *filename)
-/* Loads an XML document into memory from a file */
-{
-	xmlDoc *notebook = NULL;
-	notebook = xmlReadFile(filename, NULL, 0);
-	if (notebook == NULL) {
-		return NULL;
-	} else {
-		return notebook;
-	}
-}

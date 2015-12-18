@@ -85,5 +85,8 @@ pen a notebook."
 	/* Enter main event loop */
 	gtk_main();
 	
+	/* Clean up the XML library */
+	xmlCleanupParser();
+	
 	return 0;
 }

@@ -25,7 +25,4 @@
 int initXML();
 /* Initialises the XML library */
 
-xmlDoc *loadNotebook(char *filename);
-/* Loads an XML document into memory from a file */
-
 #endif

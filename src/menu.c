@@ -37,7 +37,7 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	FileMenuItems[0] = gtk_menu_item_new_with_mnemonic("Open");
 	g_signal_connect(FileMenuItems[0], "activate", 
 		G_CALLBACK(fileMenuOpenCallback), 
-		(gpointer)12345);
+		(gpointer)importantWidgets);
 	FileMenuItems[1] = gtk_menu_item_new_with_label("Save");
 	FileMenuItems[2] = gtk_menu_item_new_with_label("Quit");
 	g_signal_connect(FileMenuItems[2], "activate", 
