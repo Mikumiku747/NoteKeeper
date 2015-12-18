@@ -41,8 +41,11 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 	xmlChar *pageContent;
 	xmlNode *notebook = NULL;
 	xmlNode *section = NULL;
+	xmlNode *sectionNameNode = NULL;
 	xmlNode *page = NULL;
 	xmlNode *field = NULL;
+	xmlNode *pageNameNode = NULL;
+	xmlNode *pageContentNode = NULL;
 	GtkWidget *pageNotebook;
 	GtkWidget *pageBox;
 	GtkWidget *pageNameField;
@@ -51,6 +54,7 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 	GtkTextBuffer *pageContentBuffer;
 	int isValidNotebook = FALSE;
 	GtkWidget *loadErrorDialog;
+	GtkWidget **callbackRefs;
 	
 	/* File dialog to select a notebook. */
 	openNotebookDialog = gtk_file_chooser_dialog_new("Open Notebook...", 
@@ -90,28 +94,45 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 								if (strcmp(page->name, "Name") == 0) {
 									/* Set the section Name */
 									sectionName = xmlNodeGetContent(page);
+									/* Keep a reference to the section name node */
+									gtk_object_set_data(G_OBJECT(pageNotebook), "xmlNodeName", (gpointer)page);
 								}
 								pageName = NULL;
 								pageContent = NULL;
 								if (strcmp(page->name, "Page") == 0) {
 									/* Build the page and add it to the
 									 * section. */
-									pageBox = gtk_vbox_new(FALSE, 0);
 									for (field = page->children; field; field = field->next) {
 										if (strcmp(field->name, "Name") == 0) {
 											/* Set the Page Name */
 											pageName = xmlNodeGetContent(field);
+											/* Keep a reference to the page name node. */
+											pageNameNode = field;
 										}
 										if (strcmp(field->name, "Content") == 0) {
 											/* Set the Page Content */
 											pageContent = xmlNodeGetContent(field);
+											/* Keep a reference to the page content node. */
+											pageContentNode = field;
 										}
 									}
+									/* Create the page widgets */
+									pageBox = gtk_vbox_new(FALSE, 0);
 									pageNameBuffer = gtk_entry_buffer_new(pageName, -1);
 									pageNameField = gtk_entry_new_with_buffer(GTK_ENTRY_BUFFER(pageNameBuffer));
+									gtk_widget_modify_font(pageNameField, pango_font_description_from_string("Sans 16"));
+									g_object_set_data(G_OBJECT(pageNameField), "xmlNodeName", (gpointer)pageNameNode);
 									pageContentBuffer = gtk_text_buffer_new(NULL);
 									gtk_text_buffer_set_text(GTK_TEXT_BUFFER(pageContentBuffer), pageContent, -1);
 									pageContentTextView = gtk_text_view_new_with_buffer(pageContentBuffer);
+									g_object_set_data(G_OBJECT(pageContentBuffer), "xmlNodeContent", (gpointer)pageContentNode);
+									/* Connect them to callbacks. */
+									callbackRefs = (GtkWidget **)malloc(sizeof(GtkWidget *)*2);
+									callbackRefs[0] = pageBox;
+									callbackRefs[1] = pageNotebook;
+									g_signal_connect(G_OBJECT(pageNameField), "activate", G_CALLBACK(pageNameChangedCallback), (gpointer)callbackRefs);
+									g_signal_connect(G_OBJECT(pageContentBuffer), "changed", G_CALLBACK(pageContentChangedCallback), NULL);
+									/* Finalise */
 									gtk_widget_show(pageNameField);
 									gtk_widget_show(pageContentTextView);
 									gtk_box_pack_start(GTK_BOX(pageBox), pageNameField, FALSE, FALSE, 0);
@@ -134,7 +155,7 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 		}
 		if (isValidNotebook == FALSE) {
 			loadErrorDialog = gtk_message_dialog_new (
-				importantWidgets[0], GTK_DIALOG_DESTROY_WITH_PARENT, 
+				GTK_WINDOW(importantWidgets[0]), GTK_DIALOG_DESTROY_WITH_PARENT, 
 				GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, 
 				"Failed to load notebook file from [%s]. Check that it \
 exists and is a valid notebook file.", 
@@ -149,8 +170,34 @@ exists and is a valid notebook file.",
 	/* Get rid of the Dialog Widget */
 	gtk_widget_destroy(openNotebookDialog);
 	return FALSE;
+}
+
+gint pageNameChangedCallback (GtkEntry *entry, gpointer data)
+/* Renames the page when the user edits the page name. */
+{
+	/* Get a reference to the page(0) and notebook(1). */
+	GtkWidget **widgets = (GtkWidget **)data;
+	/* Get a reference to the node. */
+	xmlNode *pageNameNode = g_object_get_data(G_OBJECT(entry), "xmlNodeName");
 	
+	/* Update the node */
+	xmlNodeSetContent(pageNameNode, gtk_entry_buffer_get_text(GTK_ENTRY_BUFFER(gtk_entry_get_buffer(GTK_ENTRY(entry)))));
 	
+	/* Update the page Label */
+	gtk_notebook_set_tab_label(GTK_NOTEBOOK(widgets[1]), widgets[0], gtk_label_new(gtk_entry_buffer_get_text(GTK_ENTRY_BUFFER(gtk_entry_get_buffer(GTK_ENTRY(entry))))));
+}
+
+gint pageContentChangedCallback (GtkTextBuffer *buffer, gpointer data)
+/* Applies changes in the text to memory */
+{
+	/* Get a reference to the node. */
+	xmlNode *pageContentNode = (xmlNode *)g_object_get_data(G_OBJECT(buffer), "xmlNodeContent");
+	
+	/* Save the text to the node's content */
+	GtkTextIter start, end;
+	gtk_text_buffer_get_start_iter(buffer, &start);
+	gtk_text_buffer_get_end_iter(buffer, &end);
+	xmlNodeSetContent(pageContentNode, gtk_text_buffer_get_text(buffer, &start, &end, TRUE));
 }
 
 #endif

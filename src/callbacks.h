@@ -29,5 +29,11 @@ gint topWindow_delete_event(GtkWidget *widget, GdkEvent *event,
 gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata);
 /* Opens a notebook for the user, builds XML tree, creates and binds
  * widgets, etc. */
+ 
+ gint pageNameChangedCallback (GtkEntry *entry, gpointer data);
+/* Renames the page when the user edits the page name. */
+
+gint pageContentChangedCallback (GtkTextBuffer *buffer, gpointer data);
+/* Applies changes in the text to memory */
 
 #endif
