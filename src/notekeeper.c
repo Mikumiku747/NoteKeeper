@@ -18,6 +18,7 @@
 
 /* Library Includes */
 #include <gtk/gtk.h>
+#include <stdio.h>
 
 /* Source Includes */
 #include "callbacks.h"

@@ -22,18 +22,21 @@
 #include <gtk/gtk.h>
 #include "xml.h"
 #include <stdlib.h>
+#include <stdio.h>
 
-gint topWindow_delete_event(GtkWidget *widget, GdkEvent *event, 
-	gpointer data);
+gint topWindow_delete_event(GtkWidget *widget, gpointer data);
 
 gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata);
 /* Opens a notebook for the user, builds XML tree, creates and binds
  * widgets, etc. */
  
- gint pageNameChangedCallback (GtkEntry *entry, gpointer data);
+gint pageNameChangedCallback (GtkEntry *entry, gpointer data);
 /* Renames the page when the user edits the page name. */
 
 gint pageContentChangedCallback (GtkTextBuffer *buffer, gpointer data);
 /* Applies changes in the text to memory */
+
+gint fileMenuSaveCallback(GtkWidget *widget, gpointer data);
+/* Saves the document currently in memory to a file. */
 
 #endif

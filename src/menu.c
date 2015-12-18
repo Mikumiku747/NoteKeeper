@@ -39,9 +39,12 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 		G_CALLBACK(fileMenuOpenCallback), 
 		(gpointer)importantWidgets);
 	FileMenuItems[1] = gtk_menu_item_new_with_label("Save");
+	g_signal_connect(FileMenuItems[1], "activate", 
+		G_CALLBACK(fileMenuSaveCallback), 
+		(gpointer)importantWidgets);
 	FileMenuItems[2] = gtk_menu_item_new_with_label("Quit");
 	g_signal_connect(FileMenuItems[2], "activate", 
-		G_CALLBACK(topWindow_delete_event), (gpointer)"Hello");
+		G_CALLBACK(topWindow_delete_event), NULL);
 	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
 		FileMenuItems[0]);
 	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 

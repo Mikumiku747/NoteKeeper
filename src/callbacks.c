@@ -20,8 +20,7 @@
 
 #include "callbacks.h"
 
-gint topWindow_delete_event(GtkWidget *widget, GdkEvent *event, 
-	gpointer data)
+gint topWindow_delete_event(GtkWidget *widget, gpointer data)
 /* Exits the Application */
 {
 	gtk_main_quit();
@@ -73,6 +72,8 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 				g_printf("File extension is .notebook, loading into XML tree.");
 				notebookDoc = xmlReadFile(filename, NULL, 0);
 				if (notebookDoc != NULL) {
+					/* Attach the doc to the section notebook */
+					gtk_object_set_data(GTK_OBJECT(importantWidgets[1]), "xmlDocument", (gpointer)notebookDoc);
 					/* Get the root node */
 					notebook = xmlDocGetRootElement(notebookDoc);
 					/* Get first section */
@@ -198,6 +199,57 @@ gint pageContentChangedCallback (GtkTextBuffer *buffer, gpointer data)
 	gtk_text_buffer_get_start_iter(buffer, &start);
 	gtk_text_buffer_get_end_iter(buffer, &end);
 	xmlNodeSetContent(pageContentNode, gtk_text_buffer_get_text(buffer, &start, &end, TRUE));
+}
+
+gint fileMenuSaveCallback(GtkWidget *widget, gpointer data)
+/* Saves the document currently in memory to a file. */
+{
+	GtkWidget *saveErrorDialog;
+	GtkWidget *saveChooserDialog;
+	char *filename;
+	int magic;
+	FILE *savefile = NULL;
+	
+	/* Get a reference to the window(0) and secion notebook(1). */
+	GtkWidget** widgets = (GtkWidget **)data;
+	/* Get a reference to the xml document. */
+	xmlDocPtr *notebookDoc = (xmlDocPtr *)g_object_get_data(G_OBJECT(widgets[1]), "xmlDocument");
+	/* Check the document loaded properly. */
+	if (notebookDoc != NULL) {
+		/* Open a file dialog so we can save. */
+		saveChooserDialog = gtk_file_chooser_dialog_new("Save Notebook...", 
+			GTK_WINDOW(widgets[0]), GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, 
+			GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+			NULL);
+		if (gtk_dialog_run (GTK_DIALOG (saveChooserDialog)) == GTK_RESPONSE_ACCEPT) {
+			filename = (char *)gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (saveChooserDialog));
+			savefile = fopen(filename, "w");
+			magic = (int)savefile;
+			if (savefile =! NULL) {
+				printf("File pointer: %d", (FILE *)magic);
+				xmlDocDump((FILE *)magic, notebookDoc);
+			} else {
+				saveErrorDialog = gtk_message_dialog_new (
+					GTK_WINDOW(widgets[0]), GTK_DIALOG_DESTROY_WITH_PARENT, 
+					GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, 
+					"Unable to save notebook: Failed to open file [%s]", 
+					filename);
+				gtk_dialog_run (GTK_DIALOG (saveErrorDialog));
+				gtk_widget_destroy (saveErrorDialog);
+			}
+		}
+		gtk_widget_destroy(saveChooserDialog);
+		g_free(filename);
+	} else {
+		saveErrorDialog = gtk_message_dialog_new (
+			GTK_WINDOW(widgets[0]), GTK_DIALOG_DESTROY_WITH_PARENT, 
+			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, 
+			"Failed to save notebook: Error loading in-memory document. \
+			Current Value: %d", 
+			notebookDoc);
+		gtk_dialog_run (GTK_DIALOG (saveErrorDialog));
+		gtk_widget_destroy (saveErrorDialog);
+	}
 }
 
 #endif
