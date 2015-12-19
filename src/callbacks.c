@@ -48,18 +48,23 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 	GtkWidget *pageNotebook;
 	GtkWidget *pageBox;
 	GtkWidget *pageNameField;
+	GtkWidget *pageScrollWindow;
 	GtkEntryBuffer *pageNameBuffer;
 	GtkWidget *pageContentTextView;
 	GtkTextBuffer *pageContentBuffer;
 	int isValidNotebook = FALSE;
 	GtkWidget *loadErrorDialog;
 	GtkWidget **callbackRefs;
+	GtkFileFilter *notebookFilter;
 	
 	/* File dialog to select a notebook. */
 	openNotebookDialog = gtk_file_chooser_dialog_new("Open Notebook...", 
 		GTK_WINDOW(importantWidgets[0]), GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, 
 		GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 		NULL);
+	notebookFilter = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(notebookFilter, "*.notebook");
+	gtk_file_chooser_set_filter(openNotebookDialog, notebookFilter);
 	if (gtk_dialog_run (GTK_DIALOG (openNotebookDialog)) == GTK_RESPONSE_ACCEPT) {
 		filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (openNotebookDialog));
 		/* Debug print the filename */
@@ -73,7 +78,9 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 				notebookDoc = xmlReadFile(filename, NULL, 0);
 				if (notebookDoc != NULL) {
 					/* Attach the doc to the section notebook */
-					gtk_object_set_data(GTK_OBJECT(importantWidgets[1]), "xmlDocument", (gpointer)notebookDoc);
+					g_object_set_data(G_OBJECT(importantWidgets[1]), "xmlDocument", (gpointer)notebookDoc);
+					/* Attach the current filename to the topwindow. */
+					g_object_set_data(G_OBJECT(importantWidgets[0]), "currentFile", (gpointer)filename);
 					/* Get the root node */
 					notebook = xmlDocGetRootElement(notebookDoc);
 					/* Get first section */
@@ -96,7 +103,7 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 									/* Set the section Name */
 									sectionName = xmlNodeGetContent(page);
 									/* Keep a reference to the section name node */
-									gtk_object_set_data(G_OBJECT(pageNotebook), "xmlNodeName", (gpointer)page);
+									g_object_set_data(G_OBJECT(pageNotebook), "xmlNodeName", (gpointer)page);
 								}
 								pageName = NULL;
 								pageContent = NULL;
@@ -127,6 +134,10 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 									gtk_text_buffer_set_text(GTK_TEXT_BUFFER(pageContentBuffer), pageContent, -1);
 									pageContentTextView = gtk_text_view_new_with_buffer(pageContentBuffer);
 									g_object_set_data(G_OBJECT(pageContentBuffer), "xmlNodeContent", (gpointer)pageContentNode);
+									pageScrollWindow = gtk_scrolled_window_new(NULL, NULL);
+									gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pageScrollWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+									gtk_container_add(GTK_CONTAINER(pageScrollWindow), pageContentTextView);
+									gtk_widget_show(pageScrollWindow);
 									/* Connect them to callbacks. */
 									callbackRefs = (GtkWidget **)malloc(sizeof(GtkWidget *)*2);
 									callbackRefs[0] = pageBox;
@@ -137,7 +148,7 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 									gtk_widget_show(pageNameField);
 									gtk_widget_show(pageContentTextView);
 									gtk_box_pack_start(GTK_BOX(pageBox), pageNameField, FALSE, FALSE, 0);
-									gtk_box_pack_start(GTK_BOX(pageBox), pageContentTextView, TRUE, TRUE, 0);
+									gtk_box_pack_start(GTK_BOX(pageBox), pageScrollWindow, TRUE, TRUE, 0);
 									gtk_widget_show(pageBox);
 									gtk_notebook_append_page(GTK_NOTEBOOK(pageNotebook), pageBox, gtk_label_new(pageName));
 									if (pageName != NULL) {xmlFree(pageName);}
@@ -206,6 +217,7 @@ gint fileMenuSaveCallback(GtkWidget *widget, gpointer data)
 {
 	GtkWidget *saveErrorDialog;
 	GtkWidget *saveChooserDialog;
+	GtkFileFilter *notebookFilter;
 	char *filename;
 	int magic;
 	FILE *savefile = NULL;
@@ -221,12 +233,20 @@ gint fileMenuSaveCallback(GtkWidget *widget, gpointer data)
 			GTK_WINDOW(widgets[0]), GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_CANCEL, 
 			GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 			NULL);
+		notebookFilter = gtk_file_filter_new();
+		gtk_file_filter_add_pattern(notebookFilter, "*.notebook");
+		gtk_file_chooser_set_filter(saveChooserDialog, notebookFilter);
+		/* Check to see if there's a filename we should default to. */
+		char *defaultName = g_object_get_data(G_OBJECT(widgets[0]), "currentFile");
+		if (defaultName != NULL) {
+			gtk_file_chooser_set_current_name(saveChooserDialog, defaultName);
+		}
 		if (gtk_dialog_run (GTK_DIALOG (saveChooserDialog)) == GTK_RESPONSE_ACCEPT) {
 			filename = (char *)gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (saveChooserDialog));
 			savefile = fopen(filename, "w");
 			magic = (int)savefile;
 			if (savefile =! NULL) {
-				printf("File pointer: %d", (FILE *)magic);
+				/*printf("File pointer: %d\n", (FILE *)magic);*/
 				xmlDocDump((FILE *)magic, notebookDoc);
 			} else {
 				saveErrorDialog = gtk_message_dialog_new (
