@@ -77,6 +77,10 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 				g_printf("File extension is .notebook, loading into XML tree.");
 				notebookDoc = xmlReadFile(filename, NULL, 0);
 				if (notebookDoc != NULL) {
+					/* Free an existing xmldoc if one exists. */
+					if (g_object_get_data(G_OBJECT(importantWidgets[1]), "xmlDocument") != NULL) {
+						xmlFreeDoc((xmlDocPtr *)g_object_get_data(G_OBJECT(importantWidgets[1]), "xmlDocument"));
+					}
 					/* Attach the doc to the section notebook */
 					g_object_set_data(G_OBJECT(importantWidgets[1]), "xmlDocument", (gpointer)notebookDoc);
 					/* Attach the current filename to the topwindow. */
@@ -136,6 +140,7 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 									pageContentBuffer = gtk_text_buffer_new(NULL);
 									gtk_text_buffer_set_text(GTK_TEXT_BUFFER(pageContentBuffer), pageContent, -1);
 									pageContentTextView = gtk_text_view_new_with_buffer(pageContentBuffer);
+									gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pageContentTextView), GTK_WRAP_WORD_CHAR);
 									g_object_set_data(G_OBJECT(pageContentBuffer), "xmlNodeContent", (gpointer)pageContentNode);
 									pageScrollWindow = gtk_scrolled_window_new(NULL, NULL);
 									gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pageScrollWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -241,7 +246,7 @@ gint fileMenuSaveCallback(GtkWidget *widget, gpointer data)
 		gtk_file_chooser_set_filter(saveChooserDialog, notebookFilter);
 		/* Check to see if there's a filename we should default to. */
 		char *defaultName = g_object_get_data(G_OBJECT(widgets[0]), "currentFile");
-		if (defaultName != NULL) {
+		if (defaultName != NULL && defaultName[0] == '/') {
 			gtk_file_chooser_set_current_name(saveChooserDialog, defaultName);
 		}
 		if (gtk_dialog_run (GTK_DIALOG (saveChooserDialog)) == GTK_RESPONSE_ACCEPT) {
@@ -295,6 +300,7 @@ void pageMenuNewCallback(GtkWidget *widget, gpointer data)
 {
 	xmlNode *sectionNode = NULL;
 	GtkWidget **widgets;
+	GtkWidget *noDocumentErrorDialog;
 	GtkWidget *pageNotebook;
 	xmlNode *pageNode = NULL;
 	xmlNode *pageNameNode = NULL;
@@ -309,6 +315,16 @@ void pageMenuNewCallback(GtkWidget *widget, gpointer data)
 	
 	/* Get a reference to the window(0), section notebook(1). */
 	widgets = (GtkWidget **)data;
+	/* Check if there's a loaded document. */
+	if (g_object_get_data(G_OBJECT(widgets[1]), "xmlDocument") == NULL) {
+		noDocumentErrorDialog = gtk_message_dialog_new (
+			GTK_WINDOW(widgets[0]), GTK_DIALOG_DESTROY_WITH_PARENT, 
+			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, 
+			"You need to have a document open to delete a page.");
+		gtk_dialog_run (GTK_DIALOG (noDocumentErrorDialog));
+		gtk_widget_destroy (noDocumentErrorDialog);
+		return; 
+	}
 	/* Get a reference to the currently open section. */
 	pageNotebook = gtk_notebook_get_nth_page(
 		GTK_NOTEBOOK(widgets[1]), 
@@ -328,6 +344,7 @@ void pageMenuNewCallback(GtkWidget *widget, gpointer data)
 	pageContentBuffer = gtk_text_buffer_new(NULL);
 	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(pageContentBuffer), "Start by entering some text here!", -1);
 	pageContentTextView = gtk_text_view_new_with_buffer(pageContentBuffer);
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pageContentTextView), GTK_WRAP_WORD_CHAR);
 	g_object_set_data(G_OBJECT(pageContentBuffer), "xmlNodeContent", (gpointer)pageContentNode);
 	pageScrollWindow = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pageScrollWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -356,14 +373,35 @@ void pageMenuRemoveCallback(GtkWidget *widget, gpointer data)
 	GtkWidget **widgets;
 	GtkWidget *pageNotebook;
 	GtkWidget *pageBox;
+	GtkWidget *noDocumentErrorDialog;
 	xmlNode *pageNode = NULL;
 	
 	/* Get a reference to the window(0) and section notebook(1). */
 	widgets = (GtkWidget **)data;
+	/* Check if there's a loaded document. */
+	if (g_object_get_data(G_OBJECT(widgets[1]), "xmlDocument") == NULL) {
+		noDocumentErrorDialog = gtk_message_dialog_new (
+			GTK_WINDOW(widgets[0]), GTK_DIALOG_DESTROY_WITH_PARENT, 
+			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, 
+			"You need to have a document open to delete a page.");
+		gtk_dialog_run (GTK_DIALOG (noDocumentErrorDialog));
+		gtk_widget_destroy (noDocumentErrorDialog);
+		return; 
+	}
 	/* Get a reference to the current section. */
 	pageNotebook = gtk_notebook_get_nth_page(
 		GTK_NOTEBOOK(widgets[1]), 
 		gtk_notebook_get_current_page(GTK_NOTEBOOK(widgets[1])));
+	/* Make sure there's a page to delete. */
+	if (gtk_notebook_get_n_pages(GTK_NOTEBOOK(pageNotebook)) < 1) {
+		noDocumentErrorDialog = gtk_message_dialog_new (
+			GTK_WINDOW(widgets[0]), GTK_DIALOG_DESTROY_WITH_PARENT, 
+			GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, 
+			"There are no more pages to delete.");
+		gtk_dialog_run (GTK_DIALOG (noDocumentErrorDialog));
+		gtk_widget_destroy (noDocumentErrorDialog);
+		return; 
+	}
 	/* Get a reference to the current page. */
 	pageBox = gtk_notebook_get_nth_page(
 		GTK_NOTEBOOK(pageNotebook), 

@@ -31,7 +31,7 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	GtkWidget *PageMenu;
 	GtkWidget *PageMenuItems[2];
 	GtkWidget *SectionMenu;
-	GtkWidget *SectionMenuItems[2];
+	GtkWidget *SectionMenuItems[3];
 	GtkWidget *HelpMenu;
 	GtkWidget *HelpMenuItems[2];
 	
@@ -83,7 +83,8 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	SectionMenu = gtk_menu_new();
 	SectionMenuItems[0] = gtk_menu_item_new_with_mnemonic("_New section");
 	SectionMenuItems[1] = gtk_menu_item_new_with_mnemonic("_Remove section");
-	for (int i = 0; i < 2; i++) {
+	SectionMenuItems[2] = gtk_menu_item_new_with_mnemonic("R_ename section");
+	for (int i = 0; i < 3; i++) {
 		gtk_menu_shell_append(GTK_MENU_SHELL(SectionMenu), 
 			SectionMenuItems[i]);
 		gtk_widget_show(SectionMenuItems[i]);
