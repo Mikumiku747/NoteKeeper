@@ -23,11 +23,13 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	 * reference to the menu bar, so you can pack it how you want. */
 	
 	GtkWidget *MenuBar;
-	GtkWidget *MenuBarItems[2];
+	GtkWidget *MenuBarItems[3];
 	GtkWidget *FileMenu;
 	GtkWidget *FileMenuItems[3];
 	GtkWidget *EditMenu;
 	GtkWidget *EditMenuItems[3];
+	GtkWidget *HelpMenu;
+	GtkWidget *HelpMenuItems[2];
 	
 	/* Create and set up the menubar */
 	MenuBar = gtk_menu_bar_new();
@@ -45,13 +47,9 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	FileMenuItems[2] = gtk_menu_item_new_with_mnemonic("_Quit");
 	g_signal_connect(FileMenuItems[2], "activate", 
 		G_CALLBACK(topWindow_delete_event), NULL);
-	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
-		FileMenuItems[0]);
-	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
-		FileMenuItems[1]);
-	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
-		FileMenuItems[2]);
 	for (int i = 0; i < 3; i++) {
+		gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
+			FileMenuItems[i]);
 		gtk_widget_show(FileMenuItems[i]);
 	}
 	/* Set up the Edit Menu */
@@ -59,14 +57,21 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	EditMenuItems[0] = gtk_menu_item_new_with_label("Copy");
 	EditMenuItems[1] = gtk_menu_item_new_with_label("Paste");
 	EditMenuItems[2] = gtk_menu_item_new_with_label("Select All");
-	gtk_menu_shell_append(GTK_MENU_SHELL(EditMenu), 
-		EditMenuItems[0]);
-	gtk_menu_shell_append(GTK_MENU_SHELL(EditMenu), 
-		EditMenuItems[1]);
-	gtk_menu_shell_append(GTK_MENU_SHELL(EditMenu), 
-		EditMenuItems[2]);
 	for (int i = 0; i < 3; i++) {
+		gtk_menu_shell_append(GTK_MENU_SHELL(EditMenu), 
+			EditMenuItems[i]);
 		gtk_widget_show(EditMenuItems[i]);
+	}
+	/* Set up the help menu. */
+	HelpMenu = gtk_menu_new();
+	HelpMenuItems[0] = gtk_menu_item_new_with_label("Documentation");
+	HelpMenuItems[1] = gtk_menu_item_new_with_label("About");
+	g_signal_connect(HelpMenuItems[1], "activate",
+		G_CALLBACK(helpMenuAboutCallback), NULL);
+	for (int i = 0; i < 2; i++) {
+		gtk_menu_shell_append(GTK_MENU_SHELL(HelpMenu), 
+			HelpMenuItems[i]);
+		gtk_widget_show(HelpMenuItems[i]);
 	}
 	/* Connect the submenus to the main menu */
 	MenuBarItems[0] = gtk_menu_item_new_with_label("File");
@@ -75,7 +80,10 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	MenuBarItems[1] = gtk_menu_item_new_with_label("Edit");
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(MenuBarItems[1]), 
 		EditMenu);
-	for (int i = 0; i < 2; i++) {
+	MenuBarItems[2] = gtk_menu_item_new_with_label("Help");
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(MenuBarItems[2]),
+		HelpMenu);
+	for (int i = 0; i < 3; i++) {
 		gtk_menu_bar_append(GTK_MENU_BAR(MenuBar), 
 			MenuBarItems[i]);
 		gtk_widget_show(MenuBarItems[i]);

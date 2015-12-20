@@ -272,4 +272,19 @@ gint fileMenuSaveCallback(GtkWidget *widget, gpointer data)
 	}
 }
 
+void helpMenuAboutCallback(GtkWidget *widget, gpointer data)
+/* Shows the about box, which has information about the program. */
+{
+	gtk_show_about_dialog (NULL,
+		"program-name", "Notekeeper",
+		"title", "About Notekeeper",
+		"copyright", "Copyright (C) 2015  Daniel Selmes", 
+		"comments", "Notekeeper is a notebook document editor, inspired\
+ by Microsoft OneNote. It's for keeping a series of text documents\
+ organised and together in a single file. Really, I just wanted to\
+ learn a widget library in linux, and this seems like something I could\
+ make that would be useful.",
+		NULL);
+}
+
 #endif

@@ -39,4 +39,7 @@ gint pageContentChangedCallback (GtkTextBuffer *buffer, gpointer data);
 gint fileMenuSaveCallback(GtkWidget *widget, gpointer data);
 /* Saves the document currently in memory to a file. */
 
+void helpMenuAboutCallback(GtkWidget *widget, gpointer data);
+/* Shows the about box, which has information about the program. */
+
 #endif
