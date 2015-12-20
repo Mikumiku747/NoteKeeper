@@ -64,8 +64,8 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	}
 	/* Set up the help menu. */
 	HelpMenu = gtk_menu_new();
-	HelpMenuItems[0] = gtk_menu_item_new_with_label("Documentation");
-	HelpMenuItems[1] = gtk_menu_item_new_with_label("About");
+	HelpMenuItems[0] = gtk_menu_item_new_with_mnemonic("_Documentation");
+	HelpMenuItems[1] = gtk_menu_item_new_with_mnemonic("_About");
 	g_signal_connect(HelpMenuItems[1], "activate",
 		G_CALLBACK(helpMenuAboutCallback), NULL);
 	for (int i = 0; i < 2; i++) {
@@ -74,13 +74,13 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 		gtk_widget_show(HelpMenuItems[i]);
 	}
 	/* Connect the submenus to the main menu */
-	MenuBarItems[0] = gtk_menu_item_new_with_label("File");
+	MenuBarItems[0] = gtk_menu_item_new_with_mnemonic("_File");
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(MenuBarItems[0]), 
 		FileMenu);
-	MenuBarItems[1] = gtk_menu_item_new_with_label("Edit");
+	MenuBarItems[1] = gtk_menu_item_new_with_mnemonic("_Edit");
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(MenuBarItems[1]), 
 		EditMenu);
-	MenuBarItems[2] = gtk_menu_item_new_with_label("Help");
+	MenuBarItems[2] = gtk_menu_item_new_with_mnemonic("_Help");
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(MenuBarItems[2]),
 		HelpMenu);
 	for (int i = 0; i < 3; i++) {
