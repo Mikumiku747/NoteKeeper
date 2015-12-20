@@ -96,6 +96,8 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 							/* Iterate through the pages for setup. */
 							sectionName = NULL;
 							pageNotebook = gtk_notebook_new();
+							/* Keep a reference to the current section node. */
+							g_object_set_data(G_OBJECT(pageNotebook), "xmlNodeSection", (gpointer)section);
 							gtk_notebook_set_tab_pos(GTK_NOTEBOOK(pageNotebook), GTK_POS_LEFT);
 							gtk_widget_show(pageNotebook);
 							for (page = section->children; page; page = page->next) {
@@ -126,6 +128,7 @@ gint fileMenuOpenCallback(GtkWidget *widget, gpointer calldata)
 									}
 									/* Create the page widgets */
 									pageBox = gtk_vbox_new(FALSE, 0);
+									g_object_set_data(G_OBJECT(pageBox), "xmlNodePage", (gpointer)page);
 									pageNameBuffer = gtk_entry_buffer_new(pageName, -1);
 									pageNameField = gtk_entry_new_with_buffer(GTK_ENTRY_BUFFER(pageNameBuffer));
 									gtk_widget_modify_font(pageNameField, pango_font_description_from_string("Sans 16"));
@@ -285,6 +288,95 @@ void helpMenuAboutCallback(GtkWidget *widget, gpointer data)
  learn a widget library in linux, and this seems like something I could\
  make that would be useful.",
 		NULL);
+}
+
+void pageMenuNewCallback(GtkWidget *widget, gpointer data)
+/* Creates a new page and adds it to the current section. */
+{
+	xmlNode *sectionNode = NULL;
+	GtkWidget **widgets;
+	GtkWidget *pageNotebook;
+	xmlNode *pageNode = NULL;
+	xmlNode *pageNameNode = NULL;
+	xmlNode *pageContentNode = NULL;
+	GtkWidget *pageBox;
+	GtkEntryBuffer *pageNameBuffer;
+	GtkWidget *pageNameField;
+	GtkTextBuffer *pageContentBuffer;
+	GtkWidget *pageContentTextView;
+	GtkWidget *pageScrollWindow;
+	GtkWidget **callbackRefs;
+	
+	/* Get a reference to the window(0), section notebook(1). */
+	widgets = (GtkWidget **)data;
+	/* Get a reference to the currently open section. */
+	pageNotebook = gtk_notebook_get_nth_page(
+		GTK_NOTEBOOK(widgets[1]), 
+		gtk_notebook_get_current_page(GTK_NOTEBOOK(widgets[1])));
+	/* Get a reference to the section node for the current section. */
+	sectionNode = (xmlNode *)g_object_get_data(G_OBJECT(pageNotebook), "xmlNodeSection");
+	/* Create the new XML page node and children. */
+	pageNode = xmlNewChild(sectionNode, NULL, "Page", NULL);
+	pageNameNode = xmlNewChild(pageNode, NULL, "Name", "Untitled Page");
+	pageContentNode = xmlNewChild(pageNode, NULL, "Content", "Start by entering some text here!");
+	/* Create the new widgets to hold the page. */
+	pageBox = gtk_vbox_new(FALSE, 0);
+	pageNameBuffer = gtk_entry_buffer_new("Untitled Page", -1);
+	pageNameField = gtk_entry_new_with_buffer(GTK_ENTRY_BUFFER(pageNameBuffer));
+	gtk_widget_modify_font(pageNameField, pango_font_description_from_string("Sans 16"));
+	g_object_set_data(G_OBJECT(pageNameField), "xmlNodeName", (gpointer)pageNameNode);
+	pageContentBuffer = gtk_text_buffer_new(NULL);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(pageContentBuffer), "Start by entering some text here!", -1);
+	pageContentTextView = gtk_text_view_new_with_buffer(pageContentBuffer);
+	g_object_set_data(G_OBJECT(pageContentBuffer), "xmlNodeContent", (gpointer)pageContentNode);
+	pageScrollWindow = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pageScrollWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_container_add(GTK_CONTAINER(pageScrollWindow), pageContentTextView);
+	gtk_widget_show(pageScrollWindow);
+	/* Connect callbacks for the widgets. */
+	callbackRefs = (GtkWidget **)malloc(sizeof(GtkWidget *)*2);
+	callbackRefs[0] = pageBox;
+	callbackRefs[1] = pageNotebook;
+	g_signal_connect(G_OBJECT(pageNameField), "activate", G_CALLBACK(pageNameChangedCallback), (gpointer)callbackRefs);
+	g_signal_connect(G_OBJECT(pageContentBuffer), "changed", G_CALLBACK(pageContentChangedCallback), NULL);
+	/* Finalize widget creation. */
+	gtk_widget_show(pageNameField);
+	gtk_widget_show(pageContentTextView);
+	gtk_box_pack_start(GTK_BOX(pageBox), pageNameField, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(pageBox), pageScrollWindow, TRUE, TRUE, 0);
+	gtk_widget_show(pageBox);
+	/* Add the new page to the page notebook. */
+	gtk_notebook_append_page(GTK_NOTEBOOK(pageNotebook), pageBox, gtk_label_new("Untitled Page"));
+
+}
+
+void pageMenuRemoveCallback(GtkWidget *widget, gpointer data)
+/* Deletes the current page, from both the notebook and XML doc. */
+{
+	GtkWidget **widgets;
+	GtkWidget *pageNotebook;
+	GtkWidget *pageBox;
+	xmlNode *pageNode = NULL;
+	
+	/* Get a reference to the window(0) and section notebook(1). */
+	widgets = (GtkWidget **)data;
+	/* Get a reference to the current section. */
+	pageNotebook = gtk_notebook_get_nth_page(
+		GTK_NOTEBOOK(widgets[1]), 
+		gtk_notebook_get_current_page(GTK_NOTEBOOK(widgets[1])));
+	/* Get a reference to the current page. */
+	pageBox = gtk_notebook_get_nth_page(
+		GTK_NOTEBOOK(pageNotebook), 
+		gtk_notebook_get_current_page(GTK_NOTEBOOK(pageNotebook)));
+	/* Get a reference to the page's XML node. */
+	pageNode = g_object_get_data(G_OBJECT(pageBox), "xmlNodePage");
+	/* Remove the page, destroy the widget. */
+	gtk_notebook_remove_page(GTK_NOTEBOOK(pageNotebook), 
+		gtk_notebook_get_current_page(GTK_NOTEBOOK(pageNotebook)));
+	/* Unlink the XML node from the document, and free (destroy) it. */
+	xmlUnlinkNode(pageNode);
+	xmlFreeNode(pageNode);
+		
 }
 
 #endif

@@ -42,4 +42,9 @@ gint fileMenuSaveCallback(GtkWidget *widget, gpointer data);
 void helpMenuAboutCallback(GtkWidget *widget, gpointer data);
 /* Shows the about box, which has information about the program. */
 
+void pageMenuNewCallback(GtkWidget *widget, gpointer data);
+/* Creates a new page and adds it to the current section. */
+
+void pageMenuRemoveCallback(GtkWidget *widget, gpointer data);
+/* Deletes the current page, from both the notebook and XML doc. */
 #endif
