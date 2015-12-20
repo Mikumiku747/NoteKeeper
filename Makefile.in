@@ -1,3 +1,5 @@
+# @configure_input@
+# 
 # Makefile.in - Makefile template for building with autoconf
 # Copyright (C) 2015  Daniel Selmes
 #
@@ -26,6 +28,11 @@ SRCDIR = src
 
 #Object Files Dir
 OBJDIR = obj
+
+#Install Locations
+PREFIX = @prefix@
+BIN_INSTALL = @bindir@
+DATA_INSTALL = @datarootdir@
 
 #Libraries
 LIBS  = $$(pkg-config --cflags --libs gtk+-2.0)
@@ -77,7 +84,7 @@ $(OBJDIR)/xml.o: $(OBJDIR) $(SRCDIR)/xml.*
 clean:
 	rm -rf $(BINDIR)
 	rm -rf $(OBJDIR)
-	rm configure config.log config.status
+	rm config.log config.status
 	rm -rf autom4te.cache
 	rm -f Makefile
 
@@ -86,3 +93,14 @@ run: $(BINDIR)/notekeeper
 
 debug: $(BINDIR)/notekeeper
 	gdb $(BINDIR)/notekeeper
+
+install: $(BINDIR)/notekeeper
+	mkdir -p $(DATA_INSTALL)/notekeeper
+	cp bin/* $(DATA_INSTALL)/notekeeper/
+	ln -s $(DATA_INSTALL)/notekeeper/notekeeper $(BIN_INSTALL)/notekeeper
+
+remove:
+	rm -rf $(DATA_INSTALL)/notekeeper
+	rm -f $(BIN_INSTALL)/notekeeper
+
+.PHONY: build, clean, run, debug, install

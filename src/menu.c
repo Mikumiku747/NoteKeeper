@@ -34,15 +34,15 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	gtk_widget_show(MenuBar);
 	/* Set up the File Menu */
 	FileMenu = gtk_menu_new();
-	FileMenuItems[0] = gtk_menu_item_new_with_mnemonic("Open");
+	FileMenuItems[0] = gtk_menu_item_new_with_mnemonic("_Open");
 	g_signal_connect(FileMenuItems[0], "activate", 
 		G_CALLBACK(fileMenuOpenCallback), 
 		(gpointer)importantWidgets);
-	FileMenuItems[1] = gtk_menu_item_new_with_label("Save");
+	FileMenuItems[1] = gtk_menu_item_new_with_mnemonic("_Save");
 	g_signal_connect(FileMenuItems[1], "activate", 
 		G_CALLBACK(fileMenuSaveCallback), 
 		(gpointer)importantWidgets);
-	FileMenuItems[2] = gtk_menu_item_new_with_label("Quit");
+	FileMenuItems[2] = gtk_menu_item_new_with_mnemonic("_Quit");
 	g_signal_connect(FileMenuItems[2], "activate", 
 		G_CALLBACK(topWindow_delete_event), NULL);
 	gtk_menu_shell_append(GTK_MENU_SHELL(FileMenu), 
