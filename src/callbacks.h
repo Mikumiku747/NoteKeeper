@@ -23,6 +23,7 @@
 #include "xml.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 gint topWindow_delete_event(GtkWidget *widget, gpointer data);
 
@@ -47,4 +48,11 @@ void pageMenuNewCallback(GtkWidget *widget, gpointer data);
 
 void pageMenuRemoveCallback(GtkWidget *widget, gpointer data);
 /* Deletes the current page, from both the notebook and XML doc. */
+
+void sectionMenuNewCallback(GtkWidget *widget, gpointer data);
+/* Create a new section and append it to the document. */
+
+void sectionMenuRemoveCallback(GtkWidget *widget, gpointer data);
+/* Removes a section from the notebook. */
+
 #endif

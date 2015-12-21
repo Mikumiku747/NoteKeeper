@@ -29,6 +29,9 @@ SRCDIR = src
 #Object Files Dir
 OBJDIR = obj
 
+#Resoures folder
+RESDIR = res
+
 #Install Locations
 PREFIX = @prefix@
 BIN_INSTALL = @bindir@
@@ -96,11 +99,14 @@ debug: $(BINDIR)/notekeeper
 
 install: $(BINDIR)/notekeeper
 	mkdir -p $(DATA_INSTALL)/notekeeper
-	cp bin/* $(DATA_INSTALL)/notekeeper/
+	cp $(BINDIR)/* $(DATA_INSTALL)/notekeeper/
+	cp $(RESDIR)/* $(DATA_INSTALL)/notekeeper/
 	ln -s $(DATA_INSTALL)/notekeeper/notekeeper $(BIN_INSTALL)/notekeeper
+	ln -s $(DATA_INSTALL)/notekeeper/mikumiku747-notekeeper.desktop /usr/share/applications/mikumiku747-notekeeper.desktop
+	ln -s $(DATA_INSTALL)/notekeeper/mikumiku747-notekeeper.png /usr/share/icons/hicolor/48x48/apps/mikumiku747-notekeeper.png
 
 remove:
 	rm -rf $(DATA_INSTALL)/notekeeper
-	rm -f $(BIN_INSTALL)/notekeeper
+	rm -f $(BIN_INSTALL)/notekeeper /usr/share/applications/mikumiku747-notekeeper.desktop /usr/share/icons/hicolor/48x48/apps/mikumiku747-notekeeper.png
 
 .PHONY: build, clean, run, debug, install

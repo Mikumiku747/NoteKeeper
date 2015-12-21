@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Notekeeper
+Exec=notekeeper
+Icon=mikumiku747-notekeeper
+Comment=A small GTK application for organising text notes, like MS OneNote. 
+Type=Application
+Categories=GTK;GNOME;Office;
+#Copyright (C) 2015  Daniel Selmes

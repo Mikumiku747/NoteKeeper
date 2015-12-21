@@ -82,7 +82,11 @@ GtkWidget *setupMenu(GtkWidget **importantWidgets) {
 	/* Set up the section menu. */
 	SectionMenu = gtk_menu_new();
 	SectionMenuItems[0] = gtk_menu_item_new_with_mnemonic("_New section");
+	g_signal_connect(SectionMenuItems[0], "activate",
+		G_CALLBACK(sectionMenuNewCallback), (gpointer)importantWidgets);
 	SectionMenuItems[1] = gtk_menu_item_new_with_mnemonic("_Remove section");
+	g_signal_connect(SectionMenuItems[1], "activate",
+		G_CALLBACK(sectionMenuRemoveCallback), (gpointer)importantWidgets);
 	SectionMenuItems[2] = gtk_menu_item_new_with_mnemonic("R_ename section");
 	for (int i = 0; i < 3; i++) {
 		gtk_menu_shell_append(GTK_MENU_SHELL(SectionMenu), 

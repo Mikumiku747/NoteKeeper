@@ -26,7 +26,7 @@
 #include "xml.h"
 
 /* Main */
-int main(int argc, char *argv)
+int main(int argc, char **argv)
 {
 	/* Storage variables for some important widgets */
 	GtkWidget *topWindow;
